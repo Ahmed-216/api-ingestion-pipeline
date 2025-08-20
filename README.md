@@ -61,9 +61,9 @@ data-pipeline-template/
    Créer un fichier `.env` à la racine du projet :
    ```python
    # Connexion base de données
-   ADDRESS_USER_DEV=mysql://user:password@192.168.20.92:33068
-   ADDRESS_USER_DEV=mysql://user:password@192.168.20.91:33068
-   ADRESS_USER_PROD=mysql://user:password@sql-prod.carbone4h.com:33067
+   ADDRESS_USER_DEV=mysql+pymysql://user:password@192.168.20.92:33068
+   ADDRESS_USER_DEV=mysql+pymysql://user:password@192.168.20.91:33068
+   ADRESS_USER_PROD=mysql+pymysql://user:password@sql-prod.carbone4h.com:33067
    ```
    remplacer `user` et `password` avec les identifiants de connexion à la base de données
 
@@ -114,7 +114,7 @@ poetry run pytest tests/test_script_1.py
 
 ## Fichiers log
 
-Chaque script crée automatiquement un fichier de log avec le même nom dans le répertoire `logs/` :
+Chaque script crée automatiquement un fichier de log du même nom dans le répertoire `logs/` :
 
 
 ### Fichier de Configuration
@@ -133,7 +133,7 @@ LOG_LEVEL = "INFO"             # Niveau de log pour l'affichage
 1. **Hériter de BaseClass** : Tous les scripts doivent hériter de `BaseClass` qui contients les paramètres de connexions à la bdd et des méthodes communes à différents scripts.
 2. **Suivre le pattern ETL** : Extract → Transform → Load
 3. **Ajouter des logs** : Logger les étapes importantes
-4. **Écrire des tests** : Inclure des tests unitaires pour tester le comportement des fonctions et d'intégration pour tester les données transformées avant l'intégration à la bdd.
+4. **Écrire des tests** : Inclure des tests unitaires pour tester le comportement des fonctions, et des tests d'intégration pour tester les données transformées avant intégration à la bdd.
 5. **Utiliser les branches et les tags sur git** : Utiliser des branches séparées pour les fonctionalités développées et les tags git pour historiser les différentes versions du code.
 
 
