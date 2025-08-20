@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "filiere_data_template"
+version = "0.1.0"
+description = "Template for external data pipeline projects"
+authors = []
+packages = [{ include = "filiere_data_template" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+python-dotenv = "^1.1.1"
+sqlalchemy = "^2.0.43"
+pandas = "^2.3.1"
+de-tools = {git = "https://github.com/Carbone4/de_tools.git"}
+sqlparse = "^0.5.3"
+pymysql = "^1.1.1"
+pytest = "^8.4.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+black = "^25.1.0"
+isort = "^6.0.1"
+mypy = "^1.17.1"
+pytest-cov = "^6.2.1"
+ipykernel = "^6.30.1"
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+py_version = 39
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
