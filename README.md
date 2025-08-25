@@ -1,140 +1,123 @@
-# Filière Data Template
+# Data Pipeline Sample
 
-Ce repo est un template qui sert à cadrer le développement de pipelines python par l'équipe data. 
+A production-ready ETL pipeline sample project demonstrating modern data engineering practices. This project showcases an API ingestion data pipeline with proper testing, logging, error handling, and database operations.
 
-## Utilisation comme Template GitHub 
-1. Cliquer sur le bouton `Use this template` en haut de ce repo
-2. Choisir `Create a new repository`
-3. Donner un nom au nouveau projet
-4. Cloner le nouveau repo
+## Purpose
 
-## Personnalisation du Projet
+This repository serves as a **portfolio sample** for data engineering job applications, demonstrating:
+- Modular, maintainable code structure
+- Comprehensive testing (unit + integration)
+- Proper logging and error handling
+- Database abstraction and staging/production patterns
+- Modern Python development practices
 
-Après avoir cloné le template, il faut personnaliser le projet :
-
-1. **Renommer le package** : Modifier `name` dans `pyproject.toml`
-2. **Mettre à jour la description** : Modifier `description` dans `pyproject.toml`
-3. **Renommer le dossier principal** : Renommer `filiere_data_template/` vers le nom du projet
-4. **Mettre à jour les imports** : Remplacer `filiere_data_template` par le nom de package dans tous les fichiers Python
-
-
-## 📁 Structure du Projet
+## 📁 Project Structure
 
 ```
-data-pipeline-template/
-├── filiere_data_template/
+data-pipeline-sample/
+├── data_pipeline_sample/
 │   ├── __init__.py
-│   ├── config.py              # Configuration et setup 
-│   ├── runner.py              # Script d'orchestration 
+│   ├── config.py              # Configuration and setup 
+│   ├── runner.py              # Pipeline orchestration 
 │   ├── scripts/               
 │   │   ├── __init__.py
-│   │   ├── script_1.py        # Script d'exemple 
-│   │   └── script_2.py        # Scripts additionnels...
+│   │   ├── world_bank_ingestion.py  # World Bank API ingestion
+│   │   └── db_loader.py             # Database loading with concurrency
 │   ├── sql/
-│   │   └── query.sql          # Requêtes SQL
+│   │   └── create_raw_tables.sql    # Database schema creation
 │   └── utils/
 │       ├── __init__.py
-│       └── base.py            # Classe avec fonctionnalités communes
-├── logs/                      # Fichiers de logs 
-├── notebooks/                 # Notebooks Jupyter pour l'analyse
+│       ├── utils.py                 # Base utility class
+│       └── api_ingestion.py         # Generic API ingestion utilities
+├── logs/                      # Log files 
+├── data/raw/                  # Raw CSV data storage
 ├── tests/
 │   ├── __init__.py
-│   └── test_script_1.py       # Exemples de tests
-└── .env                       # Identifiants de connexion
-└── .gitignore                 # Fichiers à ne pas partager sur Git 
+│   ├── test_world_bank_ingestion.py # World Bank data tests
+│   ├── test_db_loader.py            # Database loading tests
+│   └── test_api_ingestion.py        # API utilities tests
+├── .env                       # Database credentials
 ├── poetry.lock
 ├── pyproject.toml
 ├── pytest.ini
-└── README.md
-└── run.py                     # Script d'exécution 
-
+└── run.py                     # Execution script
 ```
 
 ## 🛠️ Installation & Configuration
 
-1. **Installer les dépendances**
+1. **Install dependencies**
    ```bash
    poetry install
    ```
 
-2. **Configurer les variables d'environnement**
-   Créer un fichier `.env` à la racine du projet :
-   ```python
-   # Connexion base de données
-   ADDRESS_USER_DEV=mysql+pymysql://user:password@192.168.20.92:33068
-   ADDRESS_USER_DEV=mysql+pymysql://user:password@192.168.20.91:33068
-   ADRESS_USER_PROD=mysql+pymysql://user:password@sql-prod.carbone4h.com:33067
+2. **Configure environment variables**
+   Create a `.env` file in the project root:
+   ```bash
+   # Database connection string (example for MySQL/MariaDB)
+   ADDRESS_USER_DEV=mysql+pymysql://username:password@host:port
+   ADDRESS_USER_PREPROD=mysql+pymysql://username:password@host:port
+   ADDRESS_USER_PROD=mysql+pymysql://username:password@host:port
    ```
-   remplacer `user` et `password` avec les identifiants de connexion à la base de données
+   Replace `username`, `password`, and server details with your actual database credentials.
 
-3. **Mettre à jour la configuration**
-   Modifier `filiere_data_template/config.py` pour correspondre à ton environnement :
+3. **Update configuration**
+   Modify `data_pipeline_sample/config.py` to match your environment:
    ```python
-   ENV = "DEV"  # ou "PREPROD", "PROD"
-   DB_PROD = "ta_base_production"
+   ENV = "DEV"  # or "PREPROD", "PROD"
+   DB_PROD = "your_production_database"
    ```
 
-##  Utilisation
+##  Usage
 
-### Exécuter un Script
+### Run a Specific Script
 
 ```bash
-# Exécuter un script spécifique
-poetry run python run.py script_1
+# Run World Bank energy data ingestion
+poetry run python run.py world_bank
 
-# Exécuter le pipeline entier
+# Run database loading with concurrency
+poetry run python run.py db_loader
+
+# Run the complete pipeline
 poetry run python run.py all
 ```
 
-### Créer un Nouveau Script
+## Testing
 
-1. **Créer un nouveau fichier de script** dans `filiere_data_template/scripts/`
-
-2. **Ajouter les requête SQL** dans `filiere_data_template/sql/`
-
-3. **Créer des tests** dans `tests/`
-
-4. **Ajouter les nouveaux packages python importés**  
-```bash
-poetry add <package_name> # e.g poetry add pandas
-```
-
-## Tests
-
-### Exécuter les Tests
+### Run Tests
 
 ```bash
-# Exécuter tous les tests
+# Run all tests
 poetry run pytest
 
-# Exécuter un fichier de test spécifique
-poetry run pytest tests/test_script_1.py
+# Run a specific test file
+poetry run pytest tests/test_script_name.py
 ```
-**NB :** Dans l'exemple fourni (`script_1`) l'exécution de tests est incluse au run du script.
-
-## Fichiers log
-
-Chaque script crée automatiquement un fichier de log du même nom dans le répertoire `logs/` :
+**Note:** Tests are executed automatically when scripts are run.
 
 
-### Fichier de Configuration
+## Logs
+Each script generates a log file with the same name in the logs directory during execution.
 
-Paramètres clés dans `filiere_data_template/config.py` :
+## World Bank Energy Data Integration
 
-```python
-ENV = "DEV"                    # Environnement (DEV/PREPROD/PROD)
-DB_STAGING = "staging"         # Nom de la base de staging
-DB_PROD = "production"         # Nom de la base de production
-LOG_LEVEL = "INFO"             # Niveau de log pour l'affichage
-```
+This project includes an energy data ingestion module using the World Bank API.
 
-## Bonnes Pratiques
+### Data Sources
+- **World Bank API**: Multiple energy indicators (EG.ELC.FOSL.ZS, EG.ELC.RNEW.ZS, EG.ELC.NUCL.ZS, EG.ELC.ACCS.ZS)
+- **Data Coverage**: Global energy data from 1960-2024
+- **Format**: Structured CSV with country codes, indicators, and yearly values
 
-1. **Hériter de BaseClass** : Tous les scripts doivent hériter de `BaseClass` qui contients les paramètres de connexions à la bdd et des méthodes communes à différents scripts.
-2. **Suivre le pattern ETL** : Extract → Transform → Load
-3. **Ajouter des logs** : Logger les étapes importantes
-4. **Écrire des tests** : Inclure des tests unitaires pour tester le comportement des fonctions, et des tests d'intégration pour tester les données transformées avant intégration à la bdd.
-5. **Utiliser les branches et les tags sur git** : Utiliser des branches séparées pour les fonctionalités développées et les tags git pour historiser les différentes versions du code.
+## Key Features
+
+- **SQLAlchemy Integration**: Uses standard SQLAlchemy for database operations
+- **World Bank API Integration**: Demonstrates external API integration with energy data sources
+- **Concurrent Processing**: ThreadPoolExecutor for efficient database loading
+- **Staging/Production Pattern**: Safe data loading with staging environment
+- **Comprehensive Logging**: Detailed logging for debugging and monitoring
+- **Data Validation**: Built-in testing framework for data quality
+- **Error Handling**: Robust error handling and retry logic
+- **Modular Design**: Clean separation of concerns and reusable components
 
 
 

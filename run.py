@@ -3,13 +3,13 @@ Unified Pipeline Runner
 Runs either entire pipeline or specific script
 
 Usage:
-    poetry run python run.py script_1
-    poetry run python run.py script_2
+    poetry run python run.py world_bank
+    poetry run python run.py db_loader
     poetry run python run.py all
 """
 
 import argparse
-import filiere_data_template.runner as pipeline_runner
+import api_ingestion_pipeline.runner as pipeline_runner
 
 
 def main():
@@ -26,8 +26,8 @@ def main():
     parser.add_argument(
         "script",
         choices=[
-            "script_1",
-            "script_2",
+            "world_bank",
+            "db_loader",
             "all",
         ],
         help="Pipeline script to run",
@@ -37,8 +37,8 @@ def main():
 
     # script mapping
     scripts = {
-        "script_1": pipeline_runner.ScriptOneRunner,
-        "script_2": pipeline_runner.ScriptTwoRunner,
+        "world_bank": pipeline_runner.WorldBankRunner,
+        "db_loader": pipeline_runner.DBLoaderRunner,
         "all": pipeline_runner.PipelineRunner,
     }
 

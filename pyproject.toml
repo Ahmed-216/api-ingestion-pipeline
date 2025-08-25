@@ -1,19 +1,19 @@
 [tool.poetry]
-name = "filiere_data_template"
+name = "api_ingestion_pipeline"
 version = "0.1.0"
-description = "Template for external data pipeline projects"
+description = "A working sample of a production-ready API ingestion pipeline"
 authors = []
-packages = [{ include = "filiere_data_template" }]
+packages = [{ include = "api_ingestion_pipeline" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 python-dotenv = "^1.1.1"
 sqlalchemy = "^2.0.43"
 pandas = "^2.3.1"
-de-tools = {git = "https://github.com/Carbone4/de_tools.git"}
 sqlparse = "^0.5.3"
 pymysql = "^1.1.1"
 pytest = "^8.4.1"
+requests = "^2.32.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

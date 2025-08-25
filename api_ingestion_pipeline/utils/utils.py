@@ -1,18 +1,19 @@
 import os
 import logging
-from sqlalchemy import text
-from de_tools.sql_connection import MariaConnection
+from sqlalchemy import text, create_engine
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import sessionmaker
 import subprocess
-from typing import Optional, List
+from typing import Optional
 from dotenv import load_dotenv
-import filiere_data_template.config as cfg
+import api_ingestion_pipeline.config as cfg
 import pandas as pd
 
 load_dotenv()
 
 
-class BaseClass(MariaConnection):
-    """Base Class for common utility functions and database connections"""
+class BaseClass:
+    """Base Class for common utility functions and database connections using SQLAlchemy"""
 
     def __init__(
         self,
@@ -21,22 +22,21 @@ class BaseClass(MariaConnection):
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """
-        Set up database connections and logger.
+        Set up database connections and logger using SQLAlchemy.
         """
-        # get databse credentials
+        # get database credentials
         self.url = os.getenv(cfg.ENV_ADDRESS_USER)
 
-        # connect to staging database
-        self.sql_staging: MariaConnection = MariaConnection(
-            url=self.url,
-            database=database_staging,
-        )
+        if not self.url:
+            raise ValueError(f"Database URL not found in environment variable")
 
-        # connect to production database
-        self.sql_prod: MariaConnection = MariaConnection(
-            url=self.url,
-            database=database_prod,
-        )
+        # create engines for staging and production databases
+        self.sql_staging = create_engine(f"{self.url}/{database_staging}")
+        self.sql_prod = create_engine(f"{self.url}/{database_prod}")
+
+        # create session factories
+        self.SessionStaging = sessionmaker(bind=self.sql_staging)
+        self.SessionProd = sessionmaker(bind=self.sql_prod)
 
         # set logger
         self.logger = logger if logger is not None else logging.getLogger(__name__)
@@ -55,17 +55,22 @@ class BaseClass(MariaConnection):
 
         query_path = os.path.join(cfg.SQL_DIR, query_name)
 
-        query = self.sql_prod.read_sql_file(query_path)
+        # Read SQL file
+        with open(query_path, "r", encoding="utf-8") as file:
+            query = file.read()
 
-        data = self.sql_prod.read_query_as_df(query)
+        # Execute query and return DataFrame
+        data = pd.read_sql(query, self.sql_prod)
 
-        self.logger.info(f"Retrieved {len(data)} records \n {data.head()}")
+        self.logger.info(f"Retrieved {len(data)} records")
+        if len(data) > 0:
+            self.logger.info(f"Sample data:\n{data.head()}")
 
         return data
 
     def load_data(self, df: pd.DataFrame, table_name: str) -> None:
         """
-        Load data to database
+        Load data to database using pandas to_sql
 
         Args:
             df: data to load
@@ -73,11 +78,13 @@ class BaseClass(MariaConnection):
         """
         self.logger.info("Loading data to database")
 
-        self.sql_staging.df_to_sql(
-            df=df,
-            table_name=table_name,
+        # Load data to staging database
+        df.to_sql(
+            name=table_name,
+            con=self.sql_staging,
+            if_exists="replace",
             index=False,
-            if_exists="append",
+            method="multi",
         )
 
         self.move_table_from_staging(table_name=table_name)
@@ -91,19 +98,66 @@ class BaseClass(MariaConnection):
         Args:
             table_name: name of the table to move
         """
-
         self.logger.info("Moving a table from staging to production database")
 
-        drop_stmt = text(f"DROP TABLE IF EXISTS {cfg.DB_PROD}.{table_name}")
-        rename_stmt = text(
-            f"RENAME TABLE {cfg.DB_STAGING}.{table_name} TO {cfg.DB_PROD}.{table_name}"
-        )
-        self.sql_staging.execute_query(drop_stmt)
-        self.sql_staging.execute_query(rename_stmt)
+        # Create staging session
+        with self.SessionStaging() as session:
+            # Drop existing table in production if it exists
+            drop_stmt = text(f"DROP TABLE IF EXISTS {cfg.DB_PROD}.{table_name}")
+            session.execute(drop_stmt)
+
+            # Rename table from staging to production
+            rename_stmt = text(
+                f"RENAME TABLE {cfg.DB_STAGING}.{table_name} TO {cfg.DB_PROD}.{table_name}"
+            )
+            session.execute(rename_stmt)
+
+            session.commit()
 
         self.logger.info(
             f"Table {table_name} moved successfully from staging to production database"
         )
+
+    def execute_query(self, query: str, engine: Optional[Engine] = None) -> None:
+        """
+        Execute a raw SQL query
+
+        Args:
+            query: SQL query to execute
+            engine: SQLAlchemy engine to use (defaults to staging)
+        """
+        if engine is None:
+            engine = self.sql_staging
+
+        with engine.connect() as connection:
+            connection.execute(text(query))
+            connection.commit()
+
+    def execute_sql_file(self, sql_file_path: str) -> None:
+        """
+        Execute a SQL file
+        """
+        self.logger.info(f"Executing SQL file: {sql_file_path}")
+
+        with open(sql_file_path, "r", encoding="utf-8") as file:
+            sql_content = file.read()
+
+        # Split by semicolon and execute each statement separately
+        statements = [stmt.strip() for stmt in sql_content.split(";") if stmt.strip()]
+
+        with self.sql_staging.connect() as connection:
+            for statement in statements:
+                if statement:
+                    try:
+                        connection.execute(text(statement))
+                        connection.commit()  # Commit each statement individually
+                    except Exception as e:
+                        self.logger.error(
+                            f"Error executing statement: {statement[:100]}..."
+                        )
+                        raise e
+
+        self.logger.info(f"✅ SQL file {sql_file_path} executed successfully")
 
     def run_unit_tests(self, test_path: str) -> None:
         """

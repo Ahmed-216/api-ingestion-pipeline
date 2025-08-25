@@ -5,15 +5,18 @@ import logging
 ENV = "DEV"
 ENV_ADDRESS_USER = f"ADDRESS_USER_{ENV}"
 
-# Database connexion parameters
+# Database connection parameters
 DB_STAGING = "staging"
 DB_PROD = "sandbox"  # Replace with relevant production database
 
 # Project root directory
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Path to the raw data directory (relative to project root)
+RAW_DATA_DIR = os.path.join(ROOT_DIR, "data")
+
 # Path to the SQL files (relative to project root)
-SQL_DIR = os.path.join(ROOT_DIR, "filiere_data_template", "sql")
+SQL_DIR = os.path.join(ROOT_DIR, "api_ingestion_pipeline", "sql")
 
 # Test directory (relative to project root)
 TEST_DIR = os.path.join(ROOT_DIR, "tests")
@@ -21,6 +24,27 @@ TEST_DIR = os.path.join(ROOT_DIR, "tests")
 # Logging configuration
 LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# API endpoints
+DATA_SOURCES = {
+    "world_bank": {
+        "fossil_fuel_electricity": {
+            "url": "https://api.worldbank.org/v2/country/all/indicator/EG.ELC.FOSL.ZS",
+            "description": "Electricity production from fossil fuels (% of total)",
+            "filename": "fossil_fuel_electricity",
+        },
+        "renewable_electricity": {
+            "url": "https://api.worldbank.org/v2/country/all/indicator/EG.ELC.RNEW.ZS",
+            "description": "Electricity production from renewable sources (% of total)",
+            "filename": "renewable_electricity",
+        },
+        "nuclear_electricity": {
+            "url": "https://api.worldbank.org/v2/country/all/indicator/EG.ELC.NUCL.ZS",
+            "description": "Electricity production from nuclear sources (% of total)",
+            "filename": "nuclear_electricity",
+        },
+    },
+}
 
 
 def setup_logging(script_name: str) -> logging.Logger:
