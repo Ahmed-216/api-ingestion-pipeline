@@ -1,4 +1,4 @@
-# Data Pipeline Sample
+# API Ingestion Pipeline
 
 A production-ready ETL pipeline sample project demonstrating modern data engineering practices. This project showcases an API ingestion data pipeline with proper testing, logging, error handling, and database operations.
 
@@ -50,20 +50,20 @@ data-pipeline-sample/
    poetry install
    ```
 
-2. **Configure environment variables**
-   Create a `.env` file in the project root:
+2. **Configure environment variables**  
+Create a `.env` file in the project root:
    ```bash
    # Database connection string (example for MySQL/MariaDB)
    ADDRESS_USER_DEV=mysql+pymysql://username:password@host:port
    ADDRESS_USER_PREPROD=mysql+pymysql://username:password@host:port
    ADDRESS_USER_PROD=mysql+pymysql://username:password@host:port
    ```
-   Replace `username`, `password`, and server details with your actual database credentials.
 
-3. **Update configuration**
-   Modify `data_pipeline_sample/config.py` to match your environment:
+3. **Update configuration**  
+Modify `data_pipeline_sample/config.py` to match your environment:
    ```python
    ENV = "DEV"  # or "PREPROD", "PROD"
+   DB_STAGING = "your_staging_database"
    DB_PROD = "your_production_database"
    ```
 
@@ -111,7 +111,7 @@ This project includes an energy data ingestion module using the World Bank API.
 ## Key Features
 
 - **SQLAlchemy Integration**: Uses standard SQLAlchemy for database operations
-- **World Bank API Integration**: Demonstrates external API integration with energy data sources
+- **World Bank API Integration**: Demonstrates external API integration with World Bank data
 - **Concurrent Processing**: ThreadPoolExecutor for efficient database loading
 - **Staging/Production Pattern**: Safe data loading with staging environment
 - **Comprehensive Logging**: Detailed logging for debugging and monitoring
